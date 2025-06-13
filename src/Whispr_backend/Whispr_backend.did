@@ -1,0 +1,89 @@
+type Location = record {
+  address : opt text;
+  latitude : float64;
+  longitude : float64;
+};
+
+type ReportStatus = variant {
+  Pending;
+  UnderReview;
+  Approved;
+  Rejected;
+};
+
+type MessageSender = variant {
+  Authority : principal;
+  Reporter : principal;
+  System;
+};
+
+type Report = record {
+  id : nat64;
+  title : text;
+  description : text;
+  category : text;
+  date_submitted : nat64;
+  incident_date : opt text;
+  location : opt Location;
+  submitter_id : principal;
+  evidence_count : nat32;
+  evidence_files : vec nat64;
+  stake_amount : nat64;
+  reward_amount : nat64;
+  status : ReportStatus;
+  reviewer : opt principal;
+  review_date : opt nat64;
+  review_notes : opt text;
+};
+
+type Message = record {
+  id : nat64;
+  report_id : nat64;
+  sender : MessageSender;
+  content : text;
+  timestamp : nat64;
+  attachment : opt blob;
+};
+
+type EvidenceFile = record {
+  id : nat64;
+  name : text;
+  file_type : text;
+  data : blob;
+  upload_date : nat64;
+};
+
+type AuthorityStats = record {
+  reports_pending : nat64;
+  reports_verified : nat64;
+  reports_rejected : nat64;
+  total_rewards_distributed : nat64;
+};
+
+service : {
+  // Report submission and retrieval
+  submit_report : (text, text, text, opt Location, opt text, nat64, nat32) -> (variant { Ok : nat64; Err : text });
+  get_report : (nat64) -> (vec Report) query;
+  get_user_reports : () -> (vec Report) query;
+  get_all_reports : () -> (variant { Ok : vec Report; Err : text }) query;
+  get_reports_by_status : (ReportStatus) -> (variant { Ok : vec Report; Err : text }) query;
+  
+  // Authority actions
+  verify_report : (nat64, opt text) -> (variant { Ok; Err : text });
+  reject_report : (nat64, opt text) -> (variant { Ok; Err : text });
+  
+  // Communication
+  send_message_as_authority : (nat64, text) -> (variant { Ok; Err : text });
+  send_message_as_reporter : (nat64, text) -> (variant { Ok; Err : text });
+  get_messages : (nat64) -> (vec Message) query;
+  
+  // User balances
+  get_user_balance : () -> (nat64) query;
+  
+  // Authority management
+  get_authority_statistics : () -> (variant { Ok : AuthorityStats; Err : text }) query;
+  add_new_authority : (principal) -> (variant { Ok; Err : text });
+  
+  // For development
+  reset_to_mock_data : () -> (variant { Ok; Err : text });
+}

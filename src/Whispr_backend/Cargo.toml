@@ -1,0 +1,14 @@
+[package]
+name = "Whispr_backend"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+candid = "0.10"
+ic-cdk = "0.17"
+ic-cdk-timers = "0.11" 
+ic-stable-structures = "0.6.0"  # Missing dependency
+serde = "1.0.152"               # Missing dependency
